@@ -1,0 +1,30 @@
+
+github branching startegy :
+
+Main/Master   --->  copied as release-version branch  ---> copied as the another base branch ----> created multiple feature branches from it and , make changes
+
+Then Create a pull request to the base branch ---> then to release branch , proceed for release at particular data --> finally merge into main/master.
+
+
+CICD -flow:
+
+created multiple feature branches from it and , make changes ---> CI pipeline will trigger
+
+stages: 
+PULL code --> RUN TEST CASES --> SonarQube analyasis (based on the qality gates will proceed further/drop here) --> Docker build its image from DOckerfile --> Trivy scan --> Image Upload to jfrog 
+
+Then CD will continue to update the image and deploy in DEV env that was choosen by developers , at the CD state , approval and to sleect which DEV env theywant like DEV-01, 02 etc.,. It will be selected based on parameters set.
+
+Once the test was done , then will proceed for merging into base branch after havin PR checks and here it will deploy into QA for testing and once it was done then finally merge it into release-version branch
+
+This CI is same for each pushing operation to feature branch and once the pull request was rasied to the base branch, CI will be triggered along with blackduck scan to find the vunlarabilities on merge request
+
+Everything was okay then will push merge it to release-version branch, which will have final CI and final image in jfrog. Then CD will trigger after CI and deploy automatically to UAT/staging.
+
+If it was ok then promote artifact to prod and proceed with Deployment on prod : Once the image was available, then we proceed for manual release for prod env at specified date.
+
+We Will add a tag to the last commit and manulaly trigger the pipelines by selecting the tag and the env details like artifactory and env as prod. Once this was triggered the image will be deployed on to the prod k8s cluster.
+
+Once everything is fine , then we will merge the final code into main branch and deploy the image into other dev/qa servers to baseline them.
+
+If there were any issues in b/w , we will do a roll back using tags and then create a hotfix branch to make necessary chnages with developes and re tag and do the same again.

@@ -1,0 +1,30 @@
+helm install dynatrace-operator oci://public.ecr.aws/dynatrace/dynatrace-operator \
+--set "csidriver.enabled=false" \                                                                                   
+--create-namespace \
+--namespace dynatrace \
+--atomic
+Error: INSTALLATION FAILED: GET "https://public.ecr.aws/v2/dynatrace/dynatrace-operator/tags/list": unexpected status code 403: denied: Your authorization token has expired. Reauthenticate and try again.
+helm pull oci://public.ecr.aws/dynatrace/dynatrace-operator
+Error: GET "https://public.ecr.aws/v2/dynatrace/dynatrace-operator/tags/list": unexpected status code 403: denied: Your authorization token has expired. Reauthenticate and try again.
+
+
+Do a login to publich helm repo :  aws ecr-public get-login-password --region us-east-1 | helm registry login --username AWS --password-stdin public.ecr.aws
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+when using nodejs application and using the authntication in .npmrc file
+
+its suggested to use it as a dynamic addition in thta while while building it
+
+by adding these lines as script in the cicd pipeline or a job
+
+echo "//your.jfrog.io/artifactory/api/npm/npm-repo/:_authToken=${JFROG_TOKEN}" > .npmrc
+
+likein github actions for example 
+- name: Configure .npmrc with JFrog token
+  run: |
+     echo "//your.jfrog.io/artifactory/api/npm/npm-repo/:_authToken=${{ secrets.JFROG_TOKEN }}" > ~/.npmrc
+
+then install dependencies in next step
+
+otherwise if you written it as hardcode intermittently it can cause issue while using that while building the packages or downloading depenceins 

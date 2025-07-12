@@ -1,0 +1,42 @@
+# 🚀 DevOps Interview Questions – Azure DevOps, Docker, Terraform, Kubernetes
+
+## 🔰 L1 – Beginner Level
+
+1. Introduce yourself and share your experience as a DevOps Engineer.
+2. Where is Terraform code typically stored and how is it referenced in real-time projects?
+3. Write a Terraform script to provision a virtual machine and attach 10 data disks to it.
+4. Describe the structure and function of a Dockerfile.
+5. Explain the usage of `docker build` and `docker run` commands with examples.
+6. Write an Azure DevOps pipeline YAML file to disable public access to an Azure Storage Account using an inline script.
+7. What is Azure Monitor and what are its primary capabilities?
+8. Why would you prefer GitHub over Azure Repos for source code management?
+9. What is Prometheus and how have you used it in your projects?
+
+---
+
+## ⚙️ L2 – Advanced Level
+
+1. Explain the CI/CD workflow in Azure DevOps including build, test, and deployment stages.
+2. When pods are replaced due to scaling in Kubernetes, how can you ensure zero downtime and uninterrupted access?
+3. List best practices to optimize a Dockerfile for performance and security.
+4. What is persistent storage in Kubernetes and how do you securely provide credentials when using a StorageClass with cloud storage?
+5. Describe the steps to create an AKS cluster using Terraform.
+6. Write a Python script that calls an API, converts the response to JSON, and displays the data in a table format.
+7. How do you integrate SonarQube into a DevOps pipeline and why is it important?
+8. Before using a base image in a Dockerfile, how do you ensure that the image is free from vulnerabilities?
+
+---
+
+## 👔 Managerial + Technical – 2nd Round Interview Questions
+
+1. Introduce yourself and describe your background in DevOps.
+2. What is the most complex Bash script you have written? Explain its purpose and logic.
+3. What is the difference between `git clone` and `git pull`?
+4. Explain how `git commit` works and when it is used.
+5. In case of a production issue, how do you create a hotfix branch and push your changes after resolution? Describe your process.
+6. Are you open to relocation for this role?
+7. Why do you want to join Accenture?
+8. If required, are you comfortable working extra hours to meet project deadlines?
+9. Differentiate between `git pull` and `git fetch`.
+10. Describe a challenging situation you encountered in a project and how you handled it.
+11. why is branching important in Git? Explain its benefits.

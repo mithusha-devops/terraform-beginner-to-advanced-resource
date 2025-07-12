@@ -1,0 +1,357 @@
+Docker 
+ Scenario-Based Interview Questions 
+
+Q1: How would you debug a containerized application that crashes intermittently without logging anything useful?
+
+A1: Let me walk you through my approach: First, I would enhance the logging capabilities by:
+
+Modifying the container to run with increased verbosity
+Implementing Docker logging drivers (json-file or syslog)
+Using 'docker logs --tail' to capture final moments before crashes
+Running with '--init' flag for better signal handling
+Adding healthchecks to monitor container state
+Additionally, I would use Docker's debug mode:
+
+docker run --cap-add=SYS_PTRACE --security-opt seccomp=unconfined ...
+
+
+Q2: Your CI/CD pipeline pushes a new Docker image that fails only in production, not in staging. How would you isolate and resolve the discrepancy?
+
+A2: I would take a systematic approach:
+
+Compare environment configurations:
+
+Environment variables
+Resource constraints (CPU, memory)
+Network configurations
+Service dependencies
+Analyze differences:
+
+# Compare running configurations
+docker inspect <prod-container>
+docker inspect <staging-container>
+
+# Check resource usage
+docker stats <container-id>
+
+Review logs and metrics from both environments
+
+
+Q3: How would you ensure repeatable Docker builds across different developer machines?
+
+A3: To ensure build consistency, I would:
+
+Use specific version tags:
+FROM node:16.14.2 # Instead of FROM node:latest
+
+Implement multi-stage builds:
+FROM node:16.14.2 AS builder
+# Build steps...
+
+FROM node:16.14.2-alpine
+COPY --from=builder /app/dist ./dist
+
+Maintain .dockerignore file
+Use BuildKit's caching
+Document all build requirements in version control
+
+Q4: How would you securely inject secrets into a container without exposing them?
+
+A4: I would recommend several secure approaches:
+
+Using Docker Swarm secrets:
+docker secret create my_secret my_secret.txt
+docker service create --secret my_secret ...
+
+Implementing HashiCorp Vault:
+secrets:
+  db_password:
+    external: true
+    name: prod_db_password
+
+Using cloud provider solutions like AWS Secrets Manager
+
+Q5: A container using a volume is not syncing changes back to the host machine. How do you diagnose and resolve this?
+
+A5: I would follow these steps:
+
+Check volume mount specifications:
+docker inspect container_name | grep Mounts -A 10
+
+Verify permissions:
+# Inside container
+ls -la /mounted/path
+# On host
+ls -la /host/path
+
+Test with explicit mount options:
+docker run -v $(pwd):/app:rw ...
+
+Q6: What Docker-specific configurations might cause issues during migration to Kubernetes?
+
+A6: Several configurations need attention:
+
+Environment variables need to be converted to ConfigMaps:
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DB_HOST: "database.service"
+
+Docker volumes need to become PersistentVolumes
+Network configurations need to be adapted to Services
+Health checks need to be converted to Kubernetes probes
+
+Q7: How would you optimize a container that uses a large base image?
+
+A7: I would implement several optimization strategies:
+
+Multi-stage builds:
+FROM node:16 AS builder
+WORKDIR /app
+COPY . .
+RUN npm ci && npm run build
+
+FROM node:16-alpine
+COPY --from=builder /app/dist ./dist
+
+Use smaller base images:
+Replace ubuntu with alpine
+Use slim variants where possible
+Layer optimization:
+RUN apt-get update && apt-get install -y \
+    package1 \
+    package2 && \
+    rm -rf /var/lib/apt/lists/*
+
+Q8: How do you investigate and prevent OOMKilled status in containers?
+
+A8: I would:
+
+Check current memory usage:
+docker stats container_name
+
+Set appropriate memory limits:
+docker run --memory="512m" --memory-swap="1g" ...
+
+Monitor memory usage patterns:
+docker stats --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}"
+
+Q9: How would you monitor file system usage and inode exhaustion in a container?
+
+A9: I would implement:
+
+Real-time monitoring:
+# Check disk usage
+docker exec container_name df -h
+
+# Check inode usage
+docker exec container_name df -i
+
+Set up monitoring tools:
+cAdvisor for container metrics
+Prometheus for metrics collection
+Grafana for visualization
+Configure alerts for:
+Disk usage thresholds
+Inode usage limits
+Growth rate anomalies
+
+Q10: How would you design a secure and performant setup for GPU-based containers on a shared host?
+
+A10: I would implement the following approach:
+
+Enable NVIDIA Docker support:
+# Install NVIDIA Container Toolkit
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+
+Configure resource limits:
+docker run --gpus all --runtime=nvidia \
+    --device=/dev/nvidia0:/dev/nvidia0 \
+    --device=/dev/nvidiactl:/dev/nvidiactl \
+    my-gpu-container
+
+Q11: How do you roll back to a previous container version without the Dockerfile?
+
+A11: I would:
+
+List available images:
+docker images --all
+
+Pull from registry if needed:
+docker pull registry.example.com/myapp:previous-tag
+
+Stop and remove current container:
+docker stop current-container
+docker rm current-container
+
+Start container with previous image:
+docker run previous-image-id
+
+Q12: How do you implement custom firewall rules for container isolation?
+
+A12: I would use Docker networks:
+
+Create isolated networks:
+docker network create --driver bridge isolated_network
+
+Configure custom rules:
+# Add iptables rules
+iptables -I DOCKER-USER -i ext_if ! -s allowed_ip -j DROP
+
+# Create network with specific subnet
+docker network create --subnet=172.18.0.0/16 custom_network
+
+Q13: How do you verify and expose the correct ports for a container?
+
+A13: I would:
+
+Check current port mappings:
+docker port container_name
+
+Inspect container configuration:
+docker inspect -f '{{range $p, $conf := .NetworkSettings.Ports}} {{$p}} -> {{(index $conf 0).HostPort}} {{end}}' container_name
+
+Modify port exposure:
+docker run -p 8080:80 -p 443:443 image_name
+
+Q14: How do you configure Docker for multi-architecture builds?
+
+A14: I would use BuildKit and Docker buildx:
+
+# Enable BuildKit
+export DOCKER_BUILDKIT=1
+
+# Create builder instance
+docker buildx create --name mybuilder --use
+
+# Build for multiple platforms
+docker buildx build --platform linux/amd64,linux/arm64 \
+    -t myimage:latest --push .
+
+Q15: How do you resolve SSL errors when using ADD with remote URLs?
+
+A15: I would:
+
+Add SSL certificates:
+FROM base-image
+COPY ./certs/custom-cert.crt /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
+Or use wget/curl with appropriate flags:
+RUN curl --insecure -O https://example.com/file
+
+Q16: What causes Docker layer caching issues during builds?
+
+A16: Common causes and solutions:
+
+Optimize Dockerfile:
+# Bad - cache breaks on every build
+COPY . /app
+RUN npm install
+
+# Good - utilize cache
+COPY package*.json /app/
+RUN npm install
+COPY . /app
+
+Use .dockerignore properly
+Order instructions from least to most frequently changing
+Q17: How do you enforce container immutability in production?
+
+A17: I would:
+
+Use read-only root filesystem:
+docker run --read-only image_name
+
+Configure security options:
+docker run --security-opt=no-new-privileges \
+    --cap-drop=ALL \
+    image_name
+
+Implement content trust:
+export DOCKER_CONTENT_TRUST=1
+
+Q18: How would you implement security scanning in CI/CD?
+
+A18: I would:
+
+Integrate vulnerability scanners:
+# In CI pipeline
+steps:
+  - name: Scan image
+    run: |
+      trivy image myimage:latest
+      snyk container test myimage:latest
+
+Configure policy checks:
+docker scan --accept-license image_name
+
+Q19: How do you handle Docker container log rotation issues?
+
+A19: I would configure logging drivers:
+
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+
+Or using command line:
+
+docker run --log-driver json-file \
+    --log-opt max-size=10m \
+    --log-opt max-file=3 \
+    image_name
+
+Q20: How do you validate container image authenticity?
+
+A20: I would:
+
+Enable Docker Content Trust:
+export DOCKER_CONTENT_TRUST=1
+
+Verify signatures:
+docker trust inspect image_name
+
+Use image scanning:
+docker scan image_name
+
+Q21: How do you implement image whitelisting?
+
+A21: I would:
+
+Configure registry restrictions:
+{
+  "allowed-registries": [
+    "registry.internal.com",
+    "docker.io/trusted-org/*"
+  ]
+}
+
+Implement policy enforcement:
+# Using OPA (Open Policy Agent)
+docker run openpolicyagent/opa eval --data policy.rego --input input.json "data.docker.allow"
+
+Q22: How do you manage base image deprecation?
+
+A22: I would:
+
+Identify affected images:
+docker images --filter "reference=deprecated-base-image*" -q
+
+Create migration plan:
+Test new base image
+Update Dockerfiles
+Build and test new images
+Implement rolling updates:
+docker service update --image new-image:tag service-name
+
+Monitor deployment for issues

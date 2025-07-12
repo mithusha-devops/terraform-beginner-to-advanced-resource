@@ -1,0 +1,50 @@
+502 (bad gateway)
+
+The proxy (Ingress/ALB/NLB/etc.) **couldn't get a valid response** from the app **even though the pod was running**.
+Common Causes:
+App is **overloaded** and **refuses connections** (e.g., too many open sockets or busy threads).
+**Timeouts** — app is too slow to respond.
+**Connection reset** or **refused** errors from the backend.
+**Protocol mismatch** (e.g., Ingress using HTTP to talk to HTTPS backend).
+**Kubernetes Clues:**
+Pod is **Running and Ready**, but response is slow or rejected.
+Logs might show `connection refused`, `timeout`, or unhandled exceptions.
+
+---
+503 Service Unavailable
+There’s **no healthy pod** available to serve the request — the service cannot find a ready endpoint.
+Common Causes:
+App **crashed**, **not ready**, or stuck in **CrashLoopBackOff**.
+**Readiness probe failures** — pod is running but not marked as ready.
+No pods are backing the service (i.e., `kubectl get endpoints <svc>` returns none).
+**Kubernetes Clues:**
+Pod may be `CrashLoopBackOff`, `Pending`, or `Running` but not `Ready`.
+Service has **0 endpoints**.
+---
+### Summary Table:
+| Status Code | Meaning                         | Cause                                     | Pod State                    |
+| ----------- | ------------------------------- | ----------------------------------------- | ---------------------------- |
+| 502     | Proxy can't get a good response | App overload, timeout, refused connection | Pod is Running               |
+| 503     | No backend available            | App crashed or not ready                  | Pod is Crashing or Not Ready |
+
+500 Internal Server Error	It means that the request can not be served as the server met with an Exception.
+504 Gateway Timeout	It means that request can not be served as the gateway has timed out.
+
+504:
+
+The HTTP 504 Gateway Timeout server error response status code indicates that the server, 
+while acting as a gateway or proxy, did not get a response in time from the upstream server in order to complete the request
+
+----4xx----
+
+401 authentication issue	It means that the requested resource is username/password protected.
+403 Forbidden	It means that accessing the requested page is forbidden. authorization after successful authenctication.
+404 Not Found	It means that the Server is unable to find the requested page.
+
+---3xx---
+
+301 Moved Permanently	It means that the URL requested by the client has now been moved to a new URL.
+302 Found	It means that the URL requested by the client has been TEMPORARILY moved to a new URL
+
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/502
